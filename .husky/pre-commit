@@ -1,0 +1,11 @@
+#!/bin/sh
+npx lint-staged
+
+# Run tests for changed apps
+if git diff --cached --name-only | grep -q "^apps/weather-backend/"; then
+  npm test --workspace=apps/weather-backend --passWithNoTests
+fi
+
+if git diff --cached --name-only | grep -q "^apps/weather-frontend/"; then
+  npm test --workspace=apps/weather-frontend --passWithNoTests
+fi
