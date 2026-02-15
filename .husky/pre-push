@@ -1,0 +1,3 @@
+#!/bin/sh
+# Run all tests before push
+npm test --workspaces --if-present

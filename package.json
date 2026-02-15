@@ -4,5 +4,22 @@
   "workspaces": [
     "apps/*",
     "packages/*"
-  ]
+  ],
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7"
+  },
+  "scripts": {
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "apps/weather-backend/**/*.ts": [
+      "eslint --fix --config apps/weather-backend/eslint.config.mjs",
+      "prettier --write"
+    ],
+    "apps/weather-frontend/**/*.{ts,tsx,js,jsx}": [
+      "eslint --config apps/weather-frontend/eslint.config.js --fix",
+      "prettier --write"
+    ]
+  }
 }
