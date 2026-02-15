@@ -115,13 +115,14 @@ jobs:
           echo "::notice::Frontend build verified"
 
       - name: Install Secret Scanner
-        run: pip install trufflehog
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sh -s -- -b /usr/local/bin
 
       - name: Scan Frontend Build for Secrets
         run: |
           echo "::group::Scanning frontend build for embedded secrets..."
           trufflehog filesystem apps/weather-frontend/dist/ \
-            --exclude-paths="*.map" \
+            --no-update \
             --fail || {
               echo "::error::Secrets detected in frontend build!"
               echo "::endgroup::"
@@ -134,7 +135,7 @@ jobs:
         run: |
           echo "::group::Scanning backend build for embedded secrets..."
           trufflehog filesystem apps/weather-backend/dist/ \
-            --exclude-paths="*.map" \
+            --no-update \
             --fail || {
               echo "::error::Secrets detected in backend build!"
               echo "::endgroup::"
