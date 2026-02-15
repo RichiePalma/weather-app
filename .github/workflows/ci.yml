@@ -1,0 +1,210 @@
+name: CI Pipeline
+
+on:
+  pull_request:
+    branches: [main, dev]
+  push:
+    branches: [main, dev]
+    paths:
+      - 'apps/**'
+      - 'package*.json'
+      - '.github/workflows/**'
+
+jobs:
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint Backend
+        run: npm run lint --workspace=apps/weather-backend
+
+      - name: Lint Frontend
+        run: npm run lint --workspace=apps/weather-frontend
+
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test Backend Coverage
+        run: npm run test:cov --workspace=apps/weather-backend
+
+      - name: Test Frontend Coverage
+        run: npm run test:cov --workspace=apps/weather-frontend
+
+      - name: Upload Backend Coverage
+        uses: codecov/codecov-action@v4
+        if: always()
+        continue-on-error: true
+        with:
+          files: ./apps/weather-backend/coverage/coverage-final.json
+          flags: backend
+          name: backend-coverage
+
+      - name: Upload Frontend Coverage
+        uses: codecov/codecov-action@v4
+        if: always()
+        continue-on-error: true
+        with:
+          files: ./apps/weather-frontend/coverage/coverage-final.json
+          flags: frontend
+          name: frontend-coverage
+
+  build:
+    name: Build Applications
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Backend
+        run: npm run build --workspace=apps/weather-backend
+
+      - name: Build Frontend
+        run: npm run build --workspace=apps/weather-frontend
+
+      - name: Verify Backend Build
+        run: |
+          if [ ! -d "apps/weather-backend/dist" ] || [ -z "$(ls -A apps/weather-backend/dist)" ]; then
+            echo "::error::Backend build failed or empty"
+            exit 1
+          fi
+          echo "::notice::Backend build verified"
+
+      - name: Verify Frontend Build
+        run: |
+          if [ ! -f "apps/weather-frontend/dist/index.html" ]; then
+            echo "::error::Frontend build failed - index.html missing"
+            exit 1
+          fi
+          echo "::notice::Frontend build verified"
+
+      - name: Install Secret Scanner
+        run: pip install trufflehog
+
+      - name: Scan Frontend Build for Secrets
+        run: |
+          echo "::group::Scanning frontend build for embedded secrets..."
+          trufflehog filesystem apps/weather-frontend/dist/ \
+            --exclude-paths="*.map" \
+            --fail || {
+              echo "::error::Secrets detected in frontend build!"
+              echo "::endgroup::"
+              exit 1
+            }
+          echo "::endgroup::"
+          echo "::notice::No secrets detected in frontend build"
+
+      - name: Scan Backend Build for Secrets
+        run: |
+          echo "::group::Scanning backend build for embedded secrets..."
+          trufflehog filesystem apps/weather-backend/dist/ \
+            --exclude-paths="*.map" \
+            --fail || {
+              echo "::error::Secrets detected in backend build!"
+              echo "::endgroup::"
+              exit 1
+            }
+          echo "::endgroup::"
+          echo "::notice::No secrets detected in backend build"
+
+      - name: Check for Embedded Environment Variables
+        run: |
+          echo "::group::Checking for embedded VITE_ environment variables..."
+          if grep -r "VITE_.*KEY\|VITE_.*SECRET\|VITE_.*TOKEN\|VITE_.*PASSWORD" apps/weather-frontend/dist/ --exclude="*.map" 2>/dev/null; then
+            echo "::warning::Potentially sensitive VITE_ variables found in frontend build"
+            echo "::warning::Verify these are not sensitive credentials"
+          fi
+          echo "::endgroup::"
+          echo "::notice::Environment variable check complete"
+
+      - name: Display Build Sizes
+        run: |
+          FRONTEND_SIZE=$(du -sh apps/weather-frontend/dist | cut -f1)
+          BACKEND_SIZE=$(du -sh apps/weather-backend/dist | cut -f1)
+          echo "::notice title=Frontend Build Size::$FRONTEND_SIZE"
+          echo "::notice title=Backend Build Size::$BACKEND_SIZE"
+
+      - name: Upload Frontend Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: |
+            apps/weather-frontend/dist/**
+            !apps/weather-frontend/dist/**/*.map
+          retention-days: 7
+
+      - name: Upload Backend Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-build
+          path: |
+            apps/weather-backend/dist/**
+            !apps/weather-backend/dist/**/*.map
+          retention-days: 7
+
+      - name: Upload Source Maps (Separate)
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: sourcemaps
+          path: |
+            apps/weather-frontend/dist/**/*.map
+            apps/weather-backend/dist/**/*.map
+          retention-days: 7
+
+  type-check:
+    name: TypeScript Type Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type Check Backend
+        run: npx tsc --noEmit --project apps/weather-backend/tsconfig.json
+

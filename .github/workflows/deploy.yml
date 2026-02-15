@@ -1,0 +1,66 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy-frontend:
+    name: Deploy Frontend
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Frontend
+        run: npm run build --workspace=apps/weather-frontend
+
+      - name: Run Tests
+        run: npm test --workspace=apps/weather-frontend -- --run
+
+      - name: Deploy Frontend
+        run: |
+          echo "::notice title=Deployment::Deploying frontend to production"
+          echo "::notice::Build output is in apps/weather-frontend/dist"
+          echo "::warning::Configure your deployment service (Vercel, Netlify, AWS, etc.)"
+
+  deploy-backend:
+    name: Deploy Backend
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Backend
+        run: npm run build --workspace=apps/weather-backend
+
+      - name: Run Tests
+        run: npm test --workspace=apps/weather-backend
+
+      - name: Deploy Backend
+        run: |
+          echo "::notice title=Deployment::Deploying backend to production"
+          echo "::notice::Build output is in apps/weather-backend/dist"
+          echo "::warning::Configure your deployment service (Heroku, Railway, AWS, etc.)"

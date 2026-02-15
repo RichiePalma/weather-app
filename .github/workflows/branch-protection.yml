@@ -1,0 +1,82 @@
+name: Branch Protection
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+  push:
+    branches-ignore: [main, dev]
+
+jobs:
+  enforce-branch-naming:
+    name: Enforce Branch Naming Convention
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.ref_type == 'branch'
+
+    steps:
+      - name: Check branch name on PR
+        if: github.event_name == 'pull_request'
+        run: |
+          BRANCH_NAME="${{ github.head_ref }}"
+          echo "::notice::Checking branch name: $BRANCH_NAME"
+          
+          # Allow main and dev branches
+          if [[ "$BRANCH_NAME" == "main" ]] || [[ "$BRANCH_NAME" == "dev" ]]; then
+            echo "::notice::Protected branch: $BRANCH_NAME"
+            exit 0
+          fi
+          
+          # Check if branch follows the naming convention
+          if [[ "$BRANCH_NAME" =~ ^(task|bug|feature|hotfix)/WA-[0-9]+$ ]]; then
+            echo "::notice::Branch name '$BRANCH_NAME' follows the convention"
+            exit 0
+          else
+            echo "::error::Branch name '$BRANCH_NAME' does not follow the convention"
+            echo "::error::Expected format: (task|bug|feature|hotfix)/WA-#"
+            echo "::error::Examples: task/WA-123, bug/WA-456, feature/WA-789"
+            exit 1
+          fi
+
+      - name: Check branch name on push
+        if: github.event_name == 'push'
+        run: |
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          echo "::notice::Checking branch name: $BRANCH_NAME"
+          
+          # Allow main and dev branches
+          if [[ "$BRANCH_NAME" == "main" ]] || [[ "$BRANCH_NAME" == "dev" ]]; then
+            echo "::notice::Protected branch: $BRANCH_NAME"
+            exit 0
+          fi
+          
+          # Check if branch follows the naming convention
+          if [[ "$BRANCH_NAME" =~ ^(task|bug|feature|hotfix)/WA-[0-9]+$ ]]; then
+            echo "::notice::Branch name '$BRANCH_NAME' follows the convention"
+            exit 0
+          else
+            echo "::error::Branch name '$BRANCH_NAME' does not follow the convention"
+            echo "::error::Expected format: (task|bug|feature|hotfix)/WA-#"
+            echo "::error::Examples: task/WA-123, bug/WA-456, feature/WA-789"
+            exit 1
+          fi
+
+  enforce-pr-title:
+    name: Enforce PR Title Convention
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Check PR title format
+        run: |
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          echo "::notice::Checking PR title: $PR_TITLE"
+          
+          # Check if PR title starts with [WA-#] or WA-#:
+          if [[ "$PR_TITLE" =~ ^(\[WA-[0-9]+\]|WA-[0-9]+:) ]]; then
+            echo "::notice::PR title follows the convention"
+            exit 0
+          else
+            echo "::error::PR title must start with issue key: [WA-#] or WA-#:"
+            echo "::error::Examples: [WA-123] Add feature, WA-456: Fix bug"
+            exit 1
+          fi
+
