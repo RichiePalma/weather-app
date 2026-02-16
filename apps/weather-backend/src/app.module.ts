@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { NwsModule } from './weather/nws/nws.module';
 import { IPAPIModule } from './location/ipapi/ipapi.module';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -12,6 +13,10 @@ import { IPAPIModule } from './location/ipapi/ipapi.module';
     }),
     NwsModule,
     IPAPIModule,
+    ThrottlerModule.forRoot({
+      ttl: 60,
+      limit: 10,
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],
