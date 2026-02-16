@@ -13,13 +13,8 @@ import { ScrollArea } from "./ui/scroll-area";
 import { WeeklyForecastCard } from "./WeeklyForecastCard";
 import { HourlyForecastRow } from "./HourlyForecastRow";
 
-export function WeatherDashboard({
-  weeklyForecast,
-  hourlyForecast,
-  location = "Washington, DC",
-}) {
+export function WeatherDashboard({ weeklyForecast, hourlyForecast, location }) {
   const [activeTab, setActiveTab] = useState("weekly");
-
   const currentPeriod = weeklyForecast.properties.periods[0];
   const nextPeriod = weeklyForecast.properties.periods[1];
 
@@ -30,7 +25,17 @@ export function WeatherDashboard({
         <div className="mb-8">
           <div className="flex items-center gap-2 text-muted-foreground mb-2">
             <MapPin className="h-5 w-5" />
-            <span className="text-lg">{location}</span>
+            <span className="text-lg">
+              {location?.city && location?.region
+                ? `${location.city}, ${location.region}`
+                : "Unknown Location"}
+            </span>
+            {location?.isDefault && (
+              <span className="ml-2 px-2 py-0.5 bg-yellow-200 text-yellow-800 text-xs rounded">
+                Failed to get location or location is in a region not covered by
+                service.
+              </span>
+            )}
           </div>
           <h1 className="text-4xl mb-2">Weather Forecast</h1>
           <p className="text-sm text-muted-foreground">
