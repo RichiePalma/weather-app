@@ -1,6 +1,4 @@
 import { WeatherDashboard } from "./components/WeatherDashboard.jsx";
-import { mockWeeklyForecast } from "./data/mockWeeklyForecast.js";
-import { mockHourlyForecast } from "./data/mockHourlyForecast.js";
 import { useUserLocation } from "./hooks/useUserLocation.js";
 
 export default function App() {
@@ -35,11 +33,5 @@ export default function App() {
     ? `${location.city}, ${location.region}`
     : "DEFAULT" */
 
-  return (
-    <WeatherDashboard
-      weeklyForecast={mockWeeklyForecast}
-      hourlyForecast={mockHourlyForecast}
-      location={displayLocation}
-    />
-  );
+  return <WeatherDashboard location={displayLocation} />;
 }
