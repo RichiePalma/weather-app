@@ -3,6 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { NwsModule } from './weather/nws/nws.module';
+import { IPAPIModule } from './location/ipapi/ipapi.module';
 
 @Module({
   imports: [
@@ -10,6 +11,7 @@ import { NwsModule } from './weather/nws/nws.module';
       isGlobal: true,
     }),
     NwsModule,
+    IPAPIModule,
   ],
   controllers: [AppController],
   providers: [AppService],
