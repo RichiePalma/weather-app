@@ -14,7 +14,7 @@
   },
   "lint-staged": {
     "apps/weather-backend/**/*.ts": [
-      "eslint --fix",
+      "eslint --fix --config apps/weather-backend/eslint.config.mjs",
       "prettier --write"
     ],
     "apps/weather-frontend/**/*.{ts,tsx,js,jsx}": [
