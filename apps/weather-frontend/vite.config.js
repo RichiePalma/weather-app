@@ -4,6 +4,7 @@ import tailwindcss from "@tailwindcss/vite";
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: "/weather-app/",
   plugins: [react(), tailwindcss()],
   server: {
     proxy: {
