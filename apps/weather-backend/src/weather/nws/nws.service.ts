@@ -1,5 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { plainToInstance } from 'class-transformer';
+import { PointsResponseDto } from './dto/points-response.dto';
 
 @Injectable()
 export class NwsService {
@@ -7,6 +14,7 @@ export class NwsService {
   private readonly contactUrl: string;
   private readonly baseUrl: string;
   private readonly defaultTimeout: number;
+  private readonly logger = new Logger(NwsService.name);
 
   constructor(private readonly configService: ConfigService) {
     this.contactEmail =
@@ -20,6 +28,7 @@ export class NwsService {
     const timeoutMs = timeout ?? this.defaultTimeout;
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    this.logger.log(`GET: ${path}`);
 
     try {
       const response = await fetch(this.baseUrl + path, {
@@ -32,10 +41,20 @@ export class NwsService {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new BadRequestException(`HTTP error! status: ${response.status}`);
       }
 
-      return await response.json();
+      const data = (await response.json()) as Record<string, unknown>;
+
+      if (!data || !data.properties) {
+        throw new InternalServerErrorException(
+          'NWS response is null or missing properties',
+        );
+      }
+
+      return plainToInstance(PointsResponseDto, data?.properties, {
+        excludeExtraneousValues: true,
+      });
     } catch (error: unknown) {
       clearTimeout(timeoutId);
       const errorMessage =
@@ -45,6 +64,8 @@ export class NwsService {
   }
 
   async fetchReturnedEndpoints(url: string): Promise<unknown> {
+    this.logger.log(`GET: ${url}`);
+
     if (!url.startsWith(this.baseUrl)) {
       throw new Error('Invalid URL: must start with NWS base URL');
     }

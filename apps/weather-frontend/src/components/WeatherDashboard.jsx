@@ -12,11 +12,28 @@ import { Badge } from "./ui/badge";
 import { ScrollArea } from "./ui/scroll-area";
 import { WeeklyForecastCard } from "./WeeklyForecastCard";
 import { HourlyForecastRow } from "./HourlyForecastRow";
+import { useLatestForecasts } from "../hooks/useLatestForecasts.js";
+import { useWeeklyForecasts } from "../hooks/useWeeklyForecasts.js";
 
-export function WeatherDashboard({ weeklyForecast, hourlyForecast, location }) {
+export function WeatherDashboard({ location }) {
   const [activeTab, setActiveTab] = useState("weekly");
-  const currentPeriod = weeklyForecast.properties.periods[0];
-  const nextPeriod = weeklyForecast.properties.periods[1];
+  const { latestForecasts, loadingLatest } = useLatestForecasts(
+    location?.latitude,
+    location?.longitude,
+  );
+  const { weeklyForecasts, loadingWeekly } = useWeeklyForecasts(
+    location?.latitude,
+    location?.longitude,
+  );
+  if (loadingLatest || !latestForecasts || loadingWeekly || !weeklyForecasts) {
+    return <div>Loading...</div>;
+  }
+  const currentPeriod = weeklyForecasts.properties.periods[0];
+  const nextPeriod = weeklyForecasts.properties.periods[1];
+  const hourlyForecast = latestForecasts;
+
+  //const currentPeriod = latestForecasts[0];
+  //const nextPeriod = forecasts[1];
 
   return (
     <div className="min-h-screen bg-background">
@@ -40,7 +57,7 @@ export function WeatherDashboard({ weeklyForecast, hourlyForecast, location }) {
           <h1 className="text-4xl mb-2">Weather Forecast</h1>
           <p className="text-sm text-muted-foreground">
             Updated:{" "}
-            {new Date(weeklyForecast.properties.updateTime).toLocaleString()}
+            {new Date(weeklyForecasts.properties.updateTime).toLocaleString()}
           </p>
         </div>
 
@@ -106,7 +123,7 @@ export function WeatherDashboard({ weeklyForecast, hourlyForecast, location }) {
           {/* Weekly Forecast View */}
           <TabsContent value="weekly" className="mt-0">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {weeklyForecast.properties.periods.map((period) => (
+              {weeklyForecasts.properties.periods.map((period) => (
                 <WeeklyForecastCard key={period.number} period={period} />
               ))}
             </div>
@@ -119,14 +136,13 @@ export function WeatherDashboard({ weeklyForecast, hourlyForecast, location }) {
                 <CardTitle>Hourly Forecast</CardTitle>
                 <CardDescription>
                   Detailed hour-by-hour forecast for the next{" "}
-                  {Math.floor(hourlyForecast.properties.periods.length / 24)}{" "}
-                  days
+                  {Math.floor(hourlyForecast.length / 24)} days
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-0">
                 <ScrollArea className="h-[600px]">
                   <div className="divide-y">
-                    {hourlyForecast.properties.periods.map((period) => (
+                    {hourlyForecast.map((period) => (
                       <HourlyForecastRow key={period.number} period={period} />
                     ))}
                   </div>
@@ -141,15 +157,6 @@ export function WeatherDashboard({ weeklyForecast, hourlyForecast, location }) {
           <p className="mb-2">
             <strong>Data Source:</strong> National Weather Service API
             (https://api.weather.gov/)
-          </p>
-          <p className="mb-2">
-            <strong>Forecast Generator:</strong>{" "}
-            {weeklyForecast.properties.forecastGenerator} (Weekly) •{" "}
-            {hourlyForecast.properties.forecastGenerator} (Hourly)
-          </p>
-          <p>
-            <strong>Elevation:</strong>{" "}
-            {Math.round(weeklyForecast.properties.elevation.value * 3.28084)} ft
           </p>
         </div>
       </div>
