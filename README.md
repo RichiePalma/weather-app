@@ -7,6 +7,17 @@ Monorepo Weather app project in React + NestJS + Vitest.
 # Install node_modules from root
 npm install
 
+# Install node_modules from root
+npm install
+
+#Create file apps/weather-backend/.env with variables
+# Check section 'Third Party app' on documentation for urls 
+IPAPI_BASE_URL=<ipapi_current_url>
+NWS_BASE_URL=<nws_current_url>
+NWS_CONTACT_URL=<app_url> #Can be any url that makes your instance identifiable
+NWS_CONTACT_EMAIL=<app_email> #Can be any email that makes your instance identifiable
+NWS_TIMEOUT=<wanted_time_out_ms>
+
 # Run backend
 npm run start:dev --ws=apps/weather-backend
 
@@ -37,8 +48,8 @@ Documented with Swagger under the ```/api``` path. Once the app is running, brow
 
 ### Third Party API
 
-- [National Weather Service](!https://www.weather.gov/documentation/services-web-api#/): Free API that only covers United State territory. No need for API but using User-Agent header is encouraged.
-- [ipAPI](!https://ipapi.co/): IP Location API with limited usage on free tier. Accurate enough to map its lat and lot to weather grids and inaccurate enough for location to not be sensible or intrusive.
+- [National Weather Service](https://www.weather.gov/documentation/services-web-api#/): Free API that only covers United State territory. No need for API but using User-Agent header is encouraged.
+- [ipAPI](https://ipapi.co/): IP Location API with limited usage on free tier. Accurate enough to map its lat and lot to weather grids and inaccurate enough for location to not be sensible or intrusive.
 
 
 ### How does development workflow work?
