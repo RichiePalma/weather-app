@@ -22,7 +22,7 @@ export function useLatestForecasts(lat, lon) {
       try {
         console.log("Fetching with " + lat + " " + lon);
         const res = await fetch(
-          `/v1/nws/points/${lat},${lon}/forecast/current`,
+          `${import.meta.env.VITE_API_BASE_URL}/v1/nws/points/${lat},${lon}/forecast/current`,
         );
         const data = await res.json();
         localStorage.setItem("latestForecasts", JSON.stringify(data));
