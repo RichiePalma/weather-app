@@ -7,8 +7,10 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     proxy: {
-      "/ipapi": "http://localhost:3000",
-      "/nws": "http://localhost:3000",
+      "/v1": {
+        target: "http://localhost:3000",
+        changeOrigin: true,
+      },
     },
   },
 });

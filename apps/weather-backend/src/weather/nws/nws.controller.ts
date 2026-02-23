@@ -8,8 +8,8 @@ import { ForecastPropertiesDto } from './dto/forecast-properties.dto';
 import { ForecastPeriodDto } from './dto/forecast-period.dto';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
-@ApiTags('National Weather Service API')
-@Controller('nws')
+@ApiTags('National Weather Service API v1')
+@Controller({ path: 'nws', version: '1' })
 export class NwsController {
   constructor(private readonly nwsService: NwsService) {}
 

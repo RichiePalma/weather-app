@@ -22,7 +22,7 @@ export function useWeeklyForecasts(lat, lon) {
       try {
         console.log("Fetching with " + lat + " " + lon);
         const res = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/nws/points/${lat},${lon}/forecast`,
+          `${import.meta.env.VITE_API_BASE_URL}/v1/nws/points/${lat},${lon}/forecast`,
         );
         const data = await res.json();
         localStorage.setItem("weeklyForecasts", JSON.stringify(data));
