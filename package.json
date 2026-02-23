@@ -10,7 +10,7 @@
     "lint-staged": "^16.2.7"
   },
   "scripts": {
-    "prepare": "husky"
+    "prepare": "husky || echo 'husky not installed, skipping'"
   },
   "lint-staged": {
     "apps/weather-backend/**/*.ts": [
