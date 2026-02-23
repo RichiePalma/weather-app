@@ -2,8 +2,8 @@ import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { IPAPIService } from './ipapi.service';
 
-@ApiTags('ipapi location API')
-@Controller('ipapi')
+@ApiTags('ipapi location API v1')
+@Controller({ path: 'ipapi', version: '1' })
 export class IPAPIController {
   constructor(private readonly ipapiService: IPAPIService) {}
 

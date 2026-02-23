@@ -21,7 +21,9 @@ export function useLatestForecasts(lat, lon) {
     async function fetchForecasts() {
       try {
         console.log("Fetching with " + lat + " " + lon);
-        const res = await fetch(`/nws/points/${lat},${lon}/forecast/current`);
+        const res = await fetch(
+          `/v1/nws/points/${lat},${lon}/forecast/current`,
+        );
         const data = await res.json();
         localStorage.setItem("latestForecasts", JSON.stringify(data));
         setForecasts(data);

@@ -20,7 +20,7 @@ export function useUserLocation() {
 
     async function fetchLocation() {
       try {
-        const res = await fetch("/ipapi/json");
+        const res = await fetch("/v1/ipapi/json");
         const data = await res.json();
         const loc = {
           lat: data.latitude,
