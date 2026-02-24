@@ -11,7 +11,21 @@ on:
       - '.github/workflows/**'
 
 jobs:
+  secrets-scan:
+    name: Scan Git History for Secrets
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Scan for secrets with truffleHog
+        uses: trufflesecurity/trufflehog@v3
+        with:
+          scan: git
+
   lint:
+    needs: secrets-scan
     name: Lint Code
     runs-on: ubuntu-latest
 
@@ -35,6 +49,7 @@ jobs:
         run: npm run lint --workspace=apps/weather-frontend
 
   test:
+    needs: secrets-scan
     name: Run Tests
     runs-on: ubuntu-latest
 
@@ -76,6 +91,7 @@ jobs:
           name: frontend-coverage
 
   build:
+    needs: secrets-scan
     name: Build Applications
     runs-on: ubuntu-latest
 
@@ -190,6 +206,7 @@ jobs:
           retention-days: 7
 
   type-check:
+    needs: secrets-scan
     name: TypeScript Type Check
     runs-on: ubuntu-latest
 
