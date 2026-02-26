@@ -1,11 +1,13 @@
 #!/bin/sh
 npx lint-staged
 
-# Run tests for changed apps
+# Run trufflehog and tests for changed apps
 if git diff --cached --name-only | grep -q "^apps/weather-backend/"; then
+  npx trufflehog filesystem apps/weather-backend --fail || { echo "Secrets detected in weather-backend!"; exit 1; }
   npm test --workspace=apps/weather-backend -- --passWithNoTests
 fi
 
 if git diff --cached --name-only | grep -q "^apps/weather-frontend/"; then
+  npx trufflehog filesystem apps/weather-frontend --fail || { echo "Secrets detected in weather-frontend!"; exit 1; }
   npm test --workspace=apps/weather-frontend -- --passWithNoTests
 fi
